@@ -37,15 +37,6 @@ define([
 			.click(function() {
 				_this.fit(true);
 			});
-		_$('#pdf')
-			.click(function() {
-				//window.location = '/downloadPDF?id=' + _this.id;
-				$('<iframe />').css('display', 'none').appendTo('body').attr('src', '/downloadPDF?id=' + _this.id);
-			});
-		_$('#midi')
-			.click(function() {
-				$('<iframe />').css('display', 'none').appendTo('body').attr('src', '/downloadMidi?id=' + _this.id);
-			});
 
 		this.spinner = $('<div />').css({position: 'absolute', width: '100%', height: '100%'}).spinner({ colour: '100,100,100' }).hide();
 
@@ -70,16 +61,16 @@ define([
 	Preview.prototype.setImgSrc = function() {
 		this.img.attr('src', '/preview?id=' + this.id + '&page=' + this.page + this.cacheBuster);
 	};
-	Preview.prototype.load = function(score) {
+	Preview.prototype.load = function(score, cb) {
 		var _this = this;
 		this.spinner.show();
 		this.error.hide();
 		this.img.css({opacity: 0.3});
 		score.id = this.id;
 		$.post('/prepare_preview', score, function(response) {
-			_this.handleResponse(response);
 			_this.spinner.hide();
 			_this.img.css({opacity: 1});
+			cb(response);
 		}, 'json');
 	};
 	Preview.prototype.handleResponse = function(data) {

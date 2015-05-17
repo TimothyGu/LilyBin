@@ -85,6 +85,7 @@ app.post('/save', function(req, res) {
 var mkdirp = Promise.promisify(require('mkdirp'));
 app.post('/prepare_preview', function(req, res) {
 	const code = req.body.code;
+	const pdf = !!req.body.pdf;
 	var id,
 		tempDir,
 		tempSrc,
@@ -106,17 +107,18 @@ app.post('/prepare_preview', function(req, res) {
 			return Promise.reject({ text: 'Cannot write file', err: err});
 		});
 	}).then(function() {
-		return lilypond.compile(tempDir, 'score.ly', req.body.version)
+		return lilypond.compile(tempDir, 'score.ly', req.body.version, pdf)
 		.then(function (ret) {
 			response.output = ret;
+			if (pdf) return;
 			return fs.accessAsync(
-				renderDir + id + '/rendered.png',
+				renderDir + id + '/rendered.svg',
 				fs.R_OK
 			).then(function () {
 				response.pages = 1;
 				return fs.renameAsync(
-					renderDir + id + '/rendered.png',
-					renderDir + id + '/rendered-page1' + '.png'
+					renderDir + id + '/rendered.svg',
+					renderDir + id + '/rendered-page1.svg'
 				).catch(function (err) {
 					return Promise.reject({ text: 'file rename failed', err: err });
 				});
@@ -145,7 +147,7 @@ app.get('/preview', function(req, res) {
 	const id = req.query.id,
 		page = req.query.page || 1;
 
-	res.sendFile(renderDir + id + '/rendered-page' + page + '.png');
+	res.sendFile(renderDir + id + '/rendered-page' + page + '.svg');
 });
 
 
@@ -219,7 +221,7 @@ lilypond.versions().then(function(_versions) {
 });
 
 function countPages(id) {
-	const re = new RegExp('rendered-page.*\.png');
+	const re = new RegExp('rendered-page.*\.svg');
 	return fs.readdirAsync(renderDir + id).then(function (files) {
 		return files.filter(re.test.bind(re)).length;
 	});

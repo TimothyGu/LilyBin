@@ -21,14 +21,20 @@ require([
 	$(function() {
 		var versionState = score.version || 'stable';
 
-		function loadPreview() {
-			preview.load({code: editor.getValue(), version: versionState});
+		function loadPreview(pdf) {
+			var cb = pdf ? function (res) { redirect('/downloadPDF?id=' + res.id); }
+			             : preview.handleResponse;
+			preview.load({code: editor.getValue(), version: versionState, pdf: pdf}, cb);
 		}
 
 		function save() {
 			$.post('/save', {id: score.id, code: editor.getValue(), version: versionState}, function(response) {
 				window.location = '/' + response.id + '/' + response.revision;
 			}, 'json');
+		}
+
+		function redirect(url) {
+			$('<iframe />').css('display', 'none').appendTo('body').attr('src', url);
 		}
 
 		var editor = new Editor($('#code_container'));
@@ -61,7 +67,9 @@ require([
 
 		var preview = new Preview($('#preview_container'), score.id);
 
-		$('#preview_button').click(loadPreview);
+		$('#preview_button').click(loadPreview.bind(this, false));
+		$('#pdf').click(loadPreview.bind(this, true));
+		$('#midi').click(function(res) { redirect('/downloadMidi?id=' + res.id); })
 
 		var capitalized = { unstable: 'Unstable', stable: 'Stable' };
 		$('#version_btn')
