@@ -26,8 +26,14 @@ define([
 		});
 	}
 	Editor.prototype.openFile = function(contents, loadPreview) {
+		var _this = this;
 		this.cm.setValue(contents);
 		if (loadPreview) this.loadPreview();
+		this.cm.on('change', changeHandler);
+		function changeHandler() {
+			_this.event.trigger('editor:change');
+			_this.cm.off('change', changeHandler);
+		}
 	}
 	Editor.prototype.getValue = function() {
 		this.cm.save();
@@ -43,8 +49,14 @@ define([
 		this.event.trigger('editor:preview');
 	};
 	Editor.prototype.save = function() {
+		var _this = this;
 		this.spinner.show();
 		this.event.trigger('editor:save');
+		this.cm.on('change', changeHandler);
+		function changeHandler() {
+			_this.event.trigger('editor:change');
+			_this.cm.off('change', changeHandler);
+		}
 	};
 	Editor.prototype.reset = function() {
 		this.cm.setValue('');

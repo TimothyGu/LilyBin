@@ -59,12 +59,20 @@ require([
 				preview.id = response.id;
 				editor.spinner.hide();
 				preview.load(score);
+				$('#save_button').attr('disabled', true);
 			}, 'json');
+		}
+
+		function changed() {
+			$('#save_button').attr('disabled', false);
 		}
 
 		var editor = new Editor($('#code_container'));
 		editor.event.bind({ 'editor:preview': loadPreview,
-		                    'editor:save'   : save });
+		                    'editor:save'   : save,
+		                    'editor:change' : changed });
+
+		if (score.id) $('#save_button').attr('disabled', true);
 
 		var mainHeight = $(window).height() - $('#header').outerHeight();
 		var mainWidth  = $(window).width();
